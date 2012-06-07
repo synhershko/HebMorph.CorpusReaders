@@ -17,10 +17,11 @@
 		public string Content { get; protected set; }
 		public ContentFormat Format { get; protected set; }
 
-		public void SetContent(string content, ContentFormat contentFormat)
+		public CorpusDocument SetContent(string content, ContentFormat contentFormat)
 		{
 			Content = content;
 			Format = contentFormat;
+			return this;
 		}
 	}
 }

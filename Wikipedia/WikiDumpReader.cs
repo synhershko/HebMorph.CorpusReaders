@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.IO;
+using System.Threading;
 using System.Web;
 using HebMorph.CorpusReaders.Common;
 
@@ -71,6 +72,7 @@ namespace HebMorph.CorpusReaders.Wikipedia
         {
     		AbortReading = false;
         	filePath = dumpFilePath;
+			SuspendEvent = new ManualResetEvent(true);
         }
 
     	/// <summary>
@@ -143,8 +145,12 @@ namespace HebMorph.CorpusReaders.Wikipedia
             return intDecompSize;
         }
 
+		public ManualResetEvent SuspendEvent { get; private set; }
+
         public void Read()
         {
+			if (OnDocument == null) return;
+
             // Locate the bzip2 blocks in the file
             LocateBlocks();
 
@@ -166,6 +172,8 @@ namespace HebMorph.CorpusReaders.Wikipedia
             for (long currentBlock = 0; currentBlock < totalBlocks && !AbortReading; currentBlock++)
             {
 				ReportProgress((byte)(currentBlock * 100 / (double)totalBlocks), null, true);
+
+            	SuspendEvent.WaitOne(Timeout.Infinite); // allow for pausing
 
                 var loadedLength = LoadBlock(beginnings[currentBlock], ends[currentBlock], ref blockBuf);
 
